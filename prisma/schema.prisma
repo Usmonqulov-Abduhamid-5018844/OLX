@@ -1,0 +1,174 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  USER
+  SUPPER_ADMIN
+}
+
+model User {
+  id       String  @id @unique @default(uuid())
+  fullName String
+  phone    String
+  role     Role    @default(USER)
+  email    String  @unique
+  password String
+  IsActive Boolean @default(false)
+  regionId String
+  image    String?
+  location String?
+
+  region    Region        @relation(fields: [regionId], references: [id])
+  products  UserProduct[]
+  orders    Order[]
+  comments  Comment[]
+  likes     Like[]
+  chatsSent Chat[]        @relation("SentChats")
+  chatsRecv Chat[]        @relation("ReceivedChats")
+  session   Session[]
+}
+
+enum ProductStatus {
+  PENDING
+  FELED
+  ACTIV
+}
+
+model Product {
+  id             String        @id @unique @default(uuid())
+  name_uz        String
+  name_ru        String
+  name_en        String
+  image          String?
+  price          Float
+  categoryId     String
+  description_uz String
+  description_ru String
+  description_en String
+  isNew          Boolean
+  status         ProductStatus @default(PENDING)
+  discount       Float?
+  colorItemId    String?
+
+  category     Category      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  userProducts UserProduct[]
+  orders       Order[]
+  comments     Comment[]
+  likes        Like[]
+  chats        Chat[]
+  colorItems   ColorItem[]
+}
+
+model UserProduct {
+  id        String @id @unique @default(uuid())
+  userId    String
+  productId String
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+}
+
+enum OrderStatus {
+  PENDING
+  FINISH
+}
+
+model Order {
+  id        String      @id @unique @default(uuid())
+  userId    String
+  productId String
+  date      DateTime    @default(now())
+  count     String
+  status    OrderStatus @default(PENDING)
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+enum Type {
+  Accessories
+  Laptops
+  Phone
+  Electronics
+}
+
+model Category {
+  id       String    @id @unique @default(uuid())
+  name_uz  String
+  name_ru  String
+  name_en  String
+  image    String?
+  type     Type
+  products Product[]
+}
+
+model Like {
+  id        String  @id @unique @default(uuid())
+  userId    String
+  count     Int     @default(0)
+  productId String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model Comment {
+  id        String @id @unique @default(uuid())
+  message   String
+  productId String
+  userId    String
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model Chat {
+  id        String   @id @unique @default(uuid())
+  fromId    String
+  toId      String
+  message   String
+  date      DateTime @default(now())
+  productId String?
+
+  sender   User     @relation("SentChats", fields: [fromId], references: [id], onDelete: Cascade)
+  receiver User     @relation("ReceivedChats", fields: [toId], references: [id], onDelete: Cascade)
+  product  Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model ColorItem {
+  id        String @id @unique @default(uuid())
+  productId String
+  colorId   String
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  color   Color   @relation(fields: [colorId], references: [id], onDelete: Cascade)
+}
+
+model Color {
+  id         String      @id @unique @default(uuid())
+  name       String
+  colorItems ColorItem[]
+}
+
+model Region {
+  id    String @id @unique @default(uuid())
+  name  String
+  users User[]
+}
+
+model Session {
+  id     String    @id @unique @default(uuid())
+  api    String
+  userId String
+  data   DateTime? @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
