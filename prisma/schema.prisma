@@ -53,9 +53,10 @@ model Product {
   description_ru String
   description_en String
   isNew          Boolean
+  skitka         Int
   status         ProductStatus @default(PENDING)
   discount       Float?
-  colorItemId    String?
+  colorId        String
 
   category     Category      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   userProducts UserProduct[]
@@ -63,7 +64,7 @@ model Product {
   comments     Comment[]
   likes        Like[]
   chats        Chat[]
-  colorItems   ColorItem[]
+  color        Color         @relation(fields: [colorId], references: [id])
 }
 
 model UserProduct {
@@ -87,7 +88,7 @@ model Order {
   userId    String
   productId String
   date      DateTime    @default(now())
-  count     String
+  count     Int
   status    OrderStatus @default(PENDING)
 
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -114,7 +115,6 @@ model Category {
 model Like {
   id        String  @id @unique @default(uuid())
   userId    String
-  count     Int     @default(0)
   productId String
   user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
@@ -136,26 +136,17 @@ model Chat {
   toId      String
   message   String
   date      DateTime @default(now())
-  productId String?
+  productId String
 
   sender   User     @relation("SentChats", fields: [fromId], references: [id], onDelete: Cascade)
   receiver User     @relation("ReceivedChats", fields: [toId], references: [id], onDelete: Cascade)
   product  Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
-model ColorItem {
-  id        String @id @unique @default(uuid())
-  productId String
-  colorId   String
-
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  color   Color   @relation(fields: [colorId], references: [id], onDelete: Cascade)
-}
-
 model Color {
-  id         String      @id @unique @default(uuid())
-  name       String
-  colorItems ColorItem[]
+  id      String    @id @unique @default(uuid())
+  name    String
+  product Product[]
 }
 
 model Region {

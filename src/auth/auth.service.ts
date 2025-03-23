@@ -16,7 +16,7 @@ import { MailService } from 'src/mail/mail.service';
 import { totp } from 'otplib';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
-totp.options = {step: 60}
+totp.options = {step: 120}
 @Injectable()
 export class AuthService {
   constructor(
@@ -106,7 +106,14 @@ export class AuthService {
       if (!user) {
         throw new NotFoundException('Not fount');
       }
-      return { otp: totp.generate(`Secret${user.phone}`) };
+      let otp = totp.generate(`Secret${user.phone}`)
+      await this.mail.sendMail(
+        user.email,
+        `Verify Activirvt Accaunt`,
+        `Otp: ${otp}`,
+      );
+      return { Message: 'Activirvt email sent otp' };
+
     } catch (error) {
       throw new NotAcceptableException(error);
     }
@@ -117,7 +124,7 @@ export class AuthService {
     if (!user) {
       throw new NotFoundException('Not fount');
     }
-    return { accsesToken: this.AccsesToket({ id: user.id, role: user.role }) };
+    return { accsesToken: await this.AccsesToket({ id: user.id, role: user.role }) };
   }
 
   async AccsesToket(pelod: { id: string; role: string }) {

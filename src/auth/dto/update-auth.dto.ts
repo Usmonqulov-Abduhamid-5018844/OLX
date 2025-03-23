@@ -28,7 +28,7 @@ export class verify {
 }
 
 export class sentOtp {
-    @ApiProperty({ example: 'usmonqulovabduhamid00@gmail.com' })
+    @ApiProperty({ example: 'usmonqulovabduhamid00@gmail.com'})
     @IsEmail()
     @IsNotEmpty()
     email: string;
